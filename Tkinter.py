@@ -93,14 +93,14 @@ class StandardWindow:
                 global photoLeft, photoRight
                 photoLeft = PhotoImage(file='linkerarm/linker' + str(number) + '.png')
                 photoRight = PhotoImage(file='rechterarm/rechter' + str(number) + '.png')
-                time.sleep(0.5)
+                time.sleep(0.1)
 
         def closeGate():
             for number in range(20, -1, 2):
                 global photoLeft, photoRight
                 photoLeft = PhotoImage(file='linkerarm/linker' + str(number) + '.png')
                 photoRight = PhotoImage(file='rechterarm/rechter' + str(number) + '.png')
-                time.sleep(0.5)
+                time.sleep(0.1)
 
         if maeslantkeringValueLabel == "Open":
             photoLeft = PhotoImage(file='linkerarm/linker0.png')
