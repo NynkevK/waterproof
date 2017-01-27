@@ -1,23 +1,30 @@
 from tkinter import *
+import csv
+import time
 
 class StandardWindow:
 
     def __init__(self, master):
-        #TODO: Misschien een simulatie ervan maken dat men zelf waarden in kan vullen en dat er dan daarop ingespeeld kan worden
+        # Global Variables:
+        global dateValueLabel, index, maeslantkeringValueLabel, photoRight, photoLeft
+        index = -1
 
         # Frames:
-        leftFrame = Frame(root, width=600, height=600, bd=1, relief=SOLID)
-        rightFrame = Frame(root, width=400, height=600, bd=1, relief=SOLID)
-        leftFrame.pack(fill=BOTH, side=LEFT)
+        leftFrame = Frame(root, width=590, height=600, bd=1, relief=SOLID)
+        rightFrame = Frame(root, width=410, height=600,bd=1, relief=SOLID)
+        leftFrame.pack(side=LEFT)
+        leftFrame.pack_propagate(0)
         rightFrame.pack()
+        rightFrame.pack_propagate(0)
 
-        #Textvariables:
-        date = StringVar()
-        time = StringVar()
-        water = StringVar()
-        maeslantkering = StringVar()
-        pi1 = StringVar()
-        pi2 = StringVar()
+        # Reading from data file:
+        dataList = []
+
+        with open("testdata.csv") as csvfile:
+            reader = csv.DictReader(csvfile, delimiter=";")
+            for row in reader:
+                print(row)
+                dataList.append(row)
 
         # All the labels used:
         emptyLabel = Label(rightFrame, text=" ")
@@ -27,12 +34,12 @@ class StandardWindow:
         maeslantkeringLabel = Label(rightFrame, text="Maeslantkering: ")
         pi1Label = Label(rightFrame, text="Linker Pi : ")
         pi2Label = Label(rightFrame, text="Rechter Pi: ")
-        dateValueLabel = Label(rightFrame, textvariable=date)
-        timeValueLabel = Label(rightFrame, textvariable=time)
-        waterValueLabel = Label(rightFrame, textvariable=water)
-        maeslantkeringValueLabel = Label(rightFrame, textvariable=maeslantkering)
-        pi1ValueLabel = Label(rightFrame, textvariable=pi1)
-        pi2ValueLabel = Label(rightFrame, textvariable=pi2)
+        dateValueLabel = Label(rightFrame, text=dataList[index]['date'])
+        timeValueLabel = Label(rightFrame, text=dataList[index]['time'])
+        waterValueLabel = Label(rightFrame, text=dataList[index]['value'])
+        maeslantkeringValueLabel = Label(rightFrame, text="Dicht")
+        pi1ValueLabel = Label(rightFrame, text="leeg")
+        pi2ValueLabel = Label(rightFrame, text="leeg")
 
         # Show all the labels in the window:
         dateLabel.grid(row=1, column=1, sticky=E)
@@ -50,30 +57,28 @@ class StandardWindow:
         pi1ValueLabel.grid(row=7, column=2, sticky=W)
         pi2ValueLabel.grid(row=8, column=2, sticky=W)
 
-        with open("../testdata.csv", "r") as data:
-            lines = data.readlines()
-
-            for line in lines:
-                print(line)
-
-        #TODO: Dict van maken zodat alles met elkaar uitgelezen kan worden
-
-        #TODO: Alle functies die moeten gebeuren met Ezri langsgaan en kijken hoe en wat
-
-        # Set variable values
-        date.set("Haalt datum uit CSV bestand")
-        time.set("Geeft tijd bij datum")
-        water.set("Geeft waterniveau bij datum en tijd")
-        maeslantkering.set("Status Maeslantkering (open/dicht)")
-        pi1.set("Geeft status van Linker pi (online/offline)")
-        pi2.set("Geeft status van Rechter pi (online/offline")
-
         def lastDate(event):
-            #TODO: Zorgen dat vorige input genomen wordt van CSV bestand
+            global dateValueLabel, index, maeslantkeringValueLabel
+            index -= 1
+            dateValueLabel["text"] = str(dataList[index]['date'])
+            timeValueLabel["text"] = str(dataList[index]['time'])
+            waterValueLabel["text"] = str(dataList[index]['value'])
+            if waterValueLabel == "1":
+                maeslantkeringValueLabel["text"] = "Dicht"
+            else:
+                maeslantkeringValueLabel["text"] = "Open"
             print("Vorige datum")
 
         def nextDate(event):
-            #TODO: Zorgen dat volgende input genomen wordt van CSV bestand
+            global dateValueLabel, index, maeslantkeringValueLabel
+            index += 1
+            dateValueLabel["text"] = str(dataList[index]['date'])
+            timeValueLabel["text"] = str(dataList[index]['time'])
+            waterValueLabel["text"] = str(dataList[index]['value'])
+            if waterValueLabel["text"] == "1":
+                maeslantkeringValueLabel["text"] = "Dicht"
+            else:
+                maeslantkeringValueLabel["text"] = "Open"
             print("Volgende datum")
 
         lastButton = Button(rightFrame, text="Last")
@@ -83,21 +88,45 @@ class StandardWindow:
         nextButton.bind("<Button-1>", nextDate)
         nextButton.grid(row=15, column=3, columnspan=2)
 
+        def openGate():
+            for number in range(0, 21, 2):
+                global photoLeft, photoRight
+                photoLeft = PhotoImage(file='linkerarm/linker' + str(number) + '.png')
+                photoRight = PhotoImage(file='rechterarm/rechter' + str(number) + '.png')
+                time.sleep(0.1)
+
+        def closeGate():
+            for number in range(20, -1, 2):
+                global photoLeft, photoRight
+                photoLeft = PhotoImage(file='linkerarm/linker' + str(number) + '.png')
+                photoRight = PhotoImage(file='rechterarm/rechter' + str(number) + '.png')
+                time.sleep(0.1)
+
+        if maeslantkeringValueLabel == "Open":
+            photoLeft = PhotoImage(file='linkerarm/linker0.png')
+        else:
+            photoLeft = PhotoImage(file='linkerarm/linker20.png')
+        imageLeft = Label(leftFrame, image=photoLeft)
+        imageLeft.image = photoLeft
+        imageLeft.pack(side=LEFT)
+
+        if maeslantkeringValueLabel == "Open":
+            photoRight = PhotoImage(file='rechterarm/rechter0.png')
+        else:
+            photoRight = PhotoImage(file='rechterarm/rechter20.png')
+        imageRigth = Label(leftFrame, image=photoRight)
+        imageRigth.image = photoRight
+        imageRigth.pack(side=RIGHT)
+
 root = Tk()
 root.geometry("1000x600")
 s = StandardWindow(root)
 root.mainloop()
 
-
-        # Canvas drawing test:
-        # canvas = Canvas(leftFrame, width=700, height=700)
-        # canvas.pack()
-        # Drawings:
-        # greenbox = canvas.create_rectangle(50, 50, 150, 150, fill="green")
-        # blackLine = canvas.create_line(0, 0, 700, 700)
-        # redLine = canvas.create_line(200,0, 0, 200, fill="red")
-
-        # How to display a photo:
-        # photo = PhotoImage(file="Maeslantkering.png")
-        # label = Label(leftFrame, image=photo)
-        # label.pack()
+# Canvas drawing test:
+# canvas = Canvas(leftFrame, width=700, height=700)
+# canvas.pack()
+# Drawings:
+# greenbox = canvas.create_rectangle(50, 50, 150, 150, fill="green")
+# blackLine = canvas.create_line(0, 0, 700, 700)
+# redLine = canvas.create_line(200,0, 0, 200, fill="red")
