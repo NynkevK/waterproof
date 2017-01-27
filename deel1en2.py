@@ -6,42 +6,39 @@ import random
 import os
 
 
-def retrieve_status(test=False):
+def retrieve_status(api_url, test=False):
     # This function can be used to retrieve the status of the flood defence with an API.
     # The parameter test can be used while the API isn't connected yet so the script can still be tested
     if test is False:
         try:
-            api_url = "ipadress van de pi waar sensors aan hangen"
+            api_url += "/status"
             response = requests.get(api_url)
 
-            parsedResponse = xmltodict.parse(response.text)
+            status = response.json()
 
-            return parsedResponse
+            return status["status"]
         except:
             return "Error"
     if test:
         return random.choice(["closed", "open", "Error"])
 
 
-def retrieve_data(test=False):
+def retrieve_data(api_url, test=False):
     # This function can be used to retrieve the data from the sensors with the API.
     # The parameter test can be used while the API isn't connected yet so the script can still be tested
     if test is False:
         # The function tries to retrieve the data but if it fails it returns a 2 so the rest of the script knows something went wrong
         try:
-            api_url = "ipadress van de pi waar sensors aan hangen"
+            api_url += "/data"
             response = requests.get(api_url)
 
-            parsedResponse = xmltodict.parse(response.text)
+            data = response.json()
 
-            save_data(parsedResponse)
-            return parsedResponse
+            return data["data"]
         except:
-            save_data(2)
             return 2
     elif test:
         data = random.choice([0, 1, 2])
-        save_data(data, True)
         return data
 
 
@@ -93,12 +90,13 @@ def save_data(data, test=False):
                 os.fsync(csvfile.fileno())
 
 
-def execute_decision(action, test=False):
+def execute_decision(action, api_url, test=False):
     # This function is used to open the arms of the flood defence with the API.
     # The parameter test can be used while the API isn't connected yet so the script can still be tested
     if test is False:
-        api_url = "ipadress van de pi waar sensors aan hangen"
-        response = requests.post(api_url, data=action)
+        headers = {'content-type': 'application/json'}
+        data = {"action": action}
+        response = requests.post(api_url, json=data, headers=headers)
 
         if response.status_code == requests.codes.ok:  # This checks if the request went okay
             print("No problems with executing the decision")
@@ -114,23 +112,24 @@ def execute_decision(action, test=False):
             print("No problems with executing the decision")
 
 
-def make_decision(status, test=False):
+def make_decision(status, api_url, test=False):
     # This function uses the retrieved data and status to decide if something has to be done, if something has to be done it executes that decision
     # The parameter test can be used while the API isn't connected yet so the script can still be tested
     if test is False:
         try:
-            data = retrieve_data()
+            data = retrieve_data(api_url)
+            save_data(data)
             if data == 0 and status == "open":
                 print("Nothing had to be done")
             elif data == 0 and status == "closed":
                 print("The \'thing\' will open")
-                if execute_decision("open") == "Error":
+                if execute_decision("open", api_url) == "Error":
                     return "Error"
             elif data == 1 and status == "closed":
                 print("Nothing had to be done")
             elif data == 1 and status == "open":
                 print("The \'thing\' will close")
-                if execute_decision("close") == "Error":
+                if execute_decision("close", api_url) == "Error":
                     return "Error"
             elif data == 2:
                 print("Something went wrong with retrieving the data")
@@ -139,18 +138,19 @@ def make_decision(status, test=False):
             print("Something went wrong, we\'ll try again")
             return "Error"
     if test:
-        data = retrieve_data(test)
+        data = retrieve_data(api_url, test)
+        save_data(data, test)
         if data == 0 and status == "open":
             print("Nothing had to be done")
         elif data == 0 and status == "closed":
             print("The \'thing\' will open")
-            if execute_decision("open", test) == "Error":
+            if execute_decision("open", api_url, test) == "Error":
                 return "Error"
         elif data == 1 and status == "closed":
             print("Nothing had to be done")
         elif data == 1 and status == "open":
             print("The \'thing\' will close")
-            if execute_decision("close", test) == "Error":
+            if execute_decision("close", api_url, test) == "Error":
                 return "Error"
         elif data == 2:
             print("Something went wrong with retrieving the data")
@@ -161,14 +161,17 @@ def main():
     # This function is used if the script is run as the main program.
     retries_status = 0
     retries_decision = 0
-    test = eval(input("Is this a test?"))
+    test = eval(input("Is this a test? "))
+    api_url = ""
+    if test is False:
+        api_url = input("What is the url of the API? ")
     while True:
-        status = retrieve_status(test)
+        status = retrieve_status(api_url, test)
         if status is not "Error":
             retries_status = 0
-            if make_decision(status, test) is not "Error":
+            if make_decision(status, api_url, test) is not "Error":
                 retries_decision = 0
-            elif make_decision(status, test) == "Error":
+            elif make_decision(status, api_url, test) == "Error":
                 if retries_decision < 3:
                     retries_decision += 1
                     print("We\'ll wait for 3 seconds and try again, decision")
