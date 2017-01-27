@@ -11,11 +11,12 @@ def retrieve_status(api_url, test=False):
     # The parameter test can be used while the API isn't connected yet so the script can still be tested
     if test is False:
         try:
+            api_url += "/status"
             response = requests.get(api_url)
 
-            parsedResponse = xmltodict.parse(response.text)
+            status = response.json()
 
-            return parsedResponse
+            return status["status"]
         except:
             return "Error"
     if test:
@@ -28,11 +29,12 @@ def retrieve_data(api_url, test=False):
     if test is False:
         # The function tries to retrieve the data but if it fails it returns a 2 so the rest of the script knows something went wrong
         try:
+            api_url += "/data"
             response = requests.get(api_url)
 
-            parsedResponse = xmltodict.parse(response.text)
+            data = response.json()
 
-            return parsedResponse
+            return data["data"]
         except:
             return 2
     elif test:
@@ -92,7 +94,9 @@ def execute_decision(action, api_url, test=False):
     # This function is used to open the arms of the flood defence with the API.
     # The parameter test can be used while the API isn't connected yet so the script can still be tested
     if test is False:
-        response = requests.post(api_url, data=action)
+        headers = {'content-type': 'application/json'}
+        data = {"action": action}
+        response = requests.post(api_url, json=data, headers=headers)
 
         if response.status_code == requests.codes.ok:  # This checks if the request went okay
             print("No problems with executing the decision")
