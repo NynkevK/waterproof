@@ -19,6 +19,8 @@ def return_status():
 
 @post("/")
 def execute_action():
+    # action is "open" of "close"
+    # je kan hieronder de code om de armen te openen of te sluiten schrijfen
     action = request.json.get("action")
 
 run(reloader=True, debug=True)
