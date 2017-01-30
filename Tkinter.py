@@ -6,12 +6,12 @@ class StandardWindow:
 
     def __init__(self, master):
         # Global Variables:
-        global dateValueLabel, index, maeslantkeringValueLabel, photoRight, photoLeft, index_2, imageLeft, imageRight
+        global dateValueLabel, index, maeslantkeringValueLabel, photo, index_2, image
         index = -1
         index_2 = 0
 
         # Frames:
-        leftFrame = Frame(root, width=590, height=600, bd=1, relief=SOLID)
+        leftFrame = Frame(root, width=600, height=600, bd=1, relief=SOLID)
         rightFrame = Frame(root, width=410, height=600,bd=1, relief=SOLID)
         leftFrame.pack(side=LEFT)
         leftFrame.pack_propagate(0)
@@ -65,8 +65,10 @@ class StandardWindow:
             waterValueLabel["text"] = str(dataList[index]['value'])
             if waterValueLabel == "1":
                 maeslantkeringValueLabel["text"] = "Dicht"
+                closeGate()
             else:
                 maeslantkeringValueLabel["text"] = "Open"
+                openGate()
             print("Vorige datum")
 
         def nextDate(event):
@@ -77,8 +79,10 @@ class StandardWindow:
             waterValueLabel["text"] = str(dataList[index]['value'])
             if waterValueLabel["text"] == "1":
                 maeslantkeringValueLabel["text"] = "Dicht"
+                closeGate()
             else:
                 maeslantkeringValueLabel["text"] = "Open"
+                openGate()
             print("Volgende datum")
 
         def openCloseButtton(event):
@@ -103,42 +107,26 @@ class StandardWindow:
         changeButton.grid(row=15, column=5, columnspan=2)
 
         def closeGate():
-            global photoLeft, photoRight, imageRight, imageLeft
-            for number in range(0, 21, 2):
-                photoLeft = PhotoImage(file='linkerarm/linker' + str(number) + '.png')
-                photoRight = PhotoImage(file='rechterarm/rechter' + str(number) + '.png')
-                imageLeft.configure(image=photoLeft)
-                imageRight.configure(image=photoRight)
-                imageLeft.image = photoLeft
-                imageRight.image = photoRight
-                print(number)
+            global photo, image
+            photo = PhotoImage(file='armen/dicht.png')
+            image.configure(image=photo)
+            image.image = photo
+            print("dicht")
 
         def openGate():
-            global photoLeft, photoRight, imageLeft, imageRight
-            for number in range(20, -1, -2):
-                photoLeft = PhotoImage(file='linkerarm/linker' + str(number) + '.png')
-                photoRight = PhotoImage(file='rechterarm/rechter' + str(number) + '.png')
-                imageLeft.configure(image=photoLeft)
-                imageRight.configure(image=photoRight)
-                imageLeft.image = photoLeft
-                imageRight.image = photoRight
-                print(number)
+            global photo, image
+            photo = PhotoImage(file='armen/open.png')
+            image.configure(image=photo)
+            image.image = photo
+            print("open")
 
         if maeslantkeringValueLabel == "Open":
-            photoLeft = PhotoImage(file='linkerarm/linker0.png')
+            photo = PhotoImage(file='armen/open.png')
         else:
-            photoLeft = PhotoImage(file='linkerarm/linker20.png')
-        imageLeft = Label(leftFrame, image=photoLeft)
-        imageLeft.image = photoLeft
-        imageLeft.pack(side=LEFT)
-
-        if maeslantkeringValueLabel == "Open":
-            photoRight = PhotoImage(file='rechterarm/rechter0.png')
-        else:
-            photoRight = PhotoImage(file='rechterarm/rechter20.png')
-        imageRight = Label(leftFrame, image=photoRight)
-        imageRight.image = photoRight
-        imageRight.pack(side=RIGHT)
+            photo = PhotoImage(file='armen/dicht.png')
+        image = Label(leftFrame, image=photo)
+        image.image = photo
+        image.pack()
 
 root = Tk()
 root.geometry("1000x600")
