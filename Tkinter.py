@@ -63,7 +63,8 @@ class StandardWindow:
             dateValueLabel["text"] = str(dataList[index]['date'])
             timeValueLabel["text"] = str(dataList[index]['time'])
             waterValueLabel["text"] = str(dataList[index]['value'])
-            if waterValueLabel == "1":
+
+            if dataList[index]['value'] == "1":
                 maeslantkeringValueLabel["text"] = "Dicht"
                 closeGate()
             else:
@@ -77,7 +78,8 @@ class StandardWindow:
             dateValueLabel["text"] = str(dataList[index]['date'])
             timeValueLabel["text"] = str(dataList[index]['time'])
             waterValueLabel["text"] = str(dataList[index]['value'])
-            if waterValueLabel["text"] == "1":
+
+            if dataList[index]['value'] == "1":
                 maeslantkeringValueLabel["text"] = "Dicht"
                 closeGate()
             else:
