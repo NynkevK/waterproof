@@ -1,6 +1,7 @@
 from tkinter import *
 import csv
 
+
 class StandardWindow:
 
     def __init__(self, master):
