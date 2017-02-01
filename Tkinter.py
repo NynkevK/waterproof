@@ -1,6 +1,5 @@
 from tkinter import *
 import csv
-import time
 
 class StandardWindow:
 
