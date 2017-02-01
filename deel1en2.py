@@ -3,6 +3,7 @@ import csv
 import time
 import random
 import os
+import sys
 
 
 def retrieve_status(api_url, test=False):
@@ -10,14 +11,13 @@ def retrieve_status(api_url, test=False):
     # The parameter test can be used while the API isn't connected yet so the script can still be tested
     if test is False:
         try:
-            api_url += "/status"
+            api_url = "http://" + api_url + "/status"
             response = requests.get(api_url)
 
             status = response.json()
-
             return status["status"]
         except:
-            return "Error"
+            return 2
     if test:
         return random.choice(["closed", "open", "Error"])
 
@@ -28,7 +28,7 @@ def retrieve_data(api_url, test=False):
     if test is False:
         # The function tries to retrieve the data but if it fails it returns a 2 so the rest of the script knows something went wrong
         try:
-            api_url += "/data"
+            api_url = "http://" + api_url + "/data"
             response = requests.get(api_url)
 
             data = response.json()
@@ -93,6 +93,7 @@ def execute_decision(action, api_url, test=False):
     # This function is used to open the arms of the flood defence with the API.
     # The parameter test can be used while the API isn't connected yet so the script can still be tested
     if test is False:
+        api_url = "http://" + api_url
         headers = {'content-type': 'application/json'}
         data = {"action": action}
         response = requests.post(api_url, json=data, headers=headers)
@@ -160,12 +161,21 @@ def main():
     # This function is used if the script is run as the main program.
     retries_status = 0
     retries_decision = 0
-    test = eval(input("Is this a test? "))
-    api_url = ""
-    if test is False:
-        api_url = input("What is the url of the API? ")
+    if len(sys.argv) > 3:
+    # These lines are setting te variables using arguments from the command line
+        test = eval(sys.argv[1])
+        wait_time = int(sys.argv[2])
+        api_url = sys.argv[3]
+    else:
+        test = eval(input("Is this a test?(answer should be True or False) "))
+        wait_time = eval(input("How long do you want to wait between checks?(answer should be an integer) "))
+        api_url = ""
+
+    if test is False and len(sys.argv) < 3:
+        api_url = input("What is the url of the API?(answer should include port) ")
     while True:
         status = retrieve_status(api_url, test)
+        print(status)
         if status is not "Error":
             retries_status = 0
             if make_decision(status, api_url, test) is not "Error":
@@ -186,10 +196,8 @@ def main():
         elif retries_status >= 3 and status == "Error":
             retries_status = 0
 
-        if test is False:
-            time.sleep(600)
-        elif test:
-            time.sleep(2)
+        time.sleep(wait_time)
 
 if __name__ == '__main__':  # This checks if the script is run as the main program.
     main()
+
