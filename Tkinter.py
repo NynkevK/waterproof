@@ -89,7 +89,7 @@ class StandardWindow:
 
         def openCloseButtton(event):
             global index_2
-            if ((index_2 % 2) == 0):
+            if (index_2 % 2) == 0:
                 openGate()
                 print("Open gate")
                 index_2 += 1
